@@ -47,12 +47,15 @@ function prepareOutput() {
     cp -r ${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/bin/* ${OUTPUT_BIN} 2>/dev/null || true
   fi
 
-  # Copy MX Player unified custom codec if present
-  if [ -f "${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.mx.so" ]; then
-    OUTPUT_MX=${OUTPUT_DIR}/mxplayer/${ANDROID_ABI}
-    mkdir -p ${OUTPUT_MX}
-    cp ${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.mx.so ${OUTPUT_MX}/
-    cp ${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.so ${OUTPUT_MX}/
+  # Copy unified single library for simple drop-in use in any app
+  if [ -f "${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.so" ]; then
+    OUTPUT_UNIFIED=${OUTPUT_DIR}/unified/${ANDROID_ABI}
+    mkdir -p ${OUTPUT_UNIFIED}
+    cp ${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.so ${OUTPUT_UNIFIED}/
+    if [ -f "${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.mx.so" ]; then
+      mkdir -p ${OUTPUT_DIR}/mxplayer/${ANDROID_ABI}
+      cp ${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.mx.so ${OUTPUT_DIR}/mxplayer/${ANDROID_ABI}/
+    fi
   fi
 }
 
@@ -138,12 +141,12 @@ do
   prepareOutput
 done
 
-# Automatically package MX Player AIO ZIP if requested
-if [ "$PACKAGE_AIO" = true ] || [ "$MX_PROFILE" = true ]; then
+# Package AIO zip if requested
+if [ "$PACKAGE_AIO" = true ]; then
   source ${SCRIPTS_DIR}/package-mxplayer-aio.sh
 fi
 
-echo "============================================="
+echo "=========================================================="
 echo "FFmpeg build completed successfully!"
-echo "Output files are located in: ${OUTPUT_DIR}"
-echo "============================================="
+echo "Output files for your Android apps are in: ${OUTPUT_DIR}"
+echo "=========================================================="

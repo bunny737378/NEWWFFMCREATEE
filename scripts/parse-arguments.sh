@@ -12,8 +12,10 @@ SOURCE_VALUE=8.1.2
 EXTERNAL_LIBRARIES=()
 FFMPEG_GPL_ENABLED=false
 ENABLE_MEDIACODEC=false
+BUILD_SINGLE_SO=false
 BUILD_MX_SO=false
 PACKAGE_AIO=false
+ULTIMATE_PROFILE=false
 MX_PROFILE=false
 
 # All FREE libraries that are supported
@@ -43,9 +45,20 @@ SUPPORTED_LIBRARIES_GPL=(
 
 for argument in "$@"; do
   case $argument in
-  # MX Player Ultimate Profile: Enables everything needed for 100% MX Player parity
+  # Universal Ultimate Profile: Maximum power for ANY Android app
+  --profile=ultimate | --profile=full | --ultimate | -u | --all-codecs)
+    ULTIMATE_PROFILE=true
+    BUILD_SINGLE_SO=true
+    ENABLE_MEDIACODEC=true
+    FFMPEG_GPL_ENABLED=true
+    EXTERNAL_LIBRARIES+=("${SUPPORTED_LIBRARIES_FREE[@]}")
+    EXTERNAL_LIBRARIES+=("${SUPPORTED_LIBRARIES_GPL[@]}")
+    ;;
+  # MX Player Profile: Same ultimate decoders + packages mx_aio.zip
   --profile=mxplayer | --mxplayer | -mx)
+    ULTIMATE_PROFILE=true
     MX_PROFILE=true
+    BUILD_SINGLE_SO=true
     BUILD_MX_SO=true
     PACKAGE_AIO=true
     ENABLE_MEDIACODEC=true
@@ -102,11 +115,16 @@ for argument in "$@"; do
   --enable-mediacodec | -mediacodec)
     ENABLE_MEDIACODEC=true
     ;;
-  # Build unified libffmpeg.mx.so / libffmpeg.so for MX Player
+  # Build unified single libffmpeg.so for simple JNI integration in any app
+  --build-single-so | -single-so)
+    BUILD_SINGLE_SO=true
+    ;;
+  # Build libffmpeg.mx.so
   --build-mx-so | -mx-so)
+    BUILD_SINGLE_SO=true
     BUILD_MX_SO=true
     ;;
-  # Package output into All-In-One (AIO) ZIP for MX Player
+  # Package output into All-In-One (AIO) ZIP
   --package-aio | -aio)
     PACKAGE_AIO=true
     ;;
@@ -201,6 +219,8 @@ export DESIRED_ANDROID_API_LEVEL=${API_LEVEL}
 # Feature flags
 export FFMPEG_GPL_ENABLED=$FFMPEG_GPL_ENABLED
 export ENABLE_MEDIACODEC=$ENABLE_MEDIACODEC
+export BUILD_SINGLE_SO=$BUILD_SINGLE_SO
 export BUILD_MX_SO=$BUILD_MX_SO
 export PACKAGE_AIO=$PACKAGE_AIO
+export ULTIMATE_PROFILE=$ULTIMATE_PROFILE
 export MX_PROFILE=$MX_PROFILE

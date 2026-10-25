@@ -16,7 +16,7 @@ concurrency:
 
 jobs:
   build:
-    name: Compile and Publish FFmpeg (MX Player Edition)
+    name: Compile and Publish Universal FFmpeg Android
     runs-on: ubuntu-22.04
 
     steps:
@@ -56,66 +56,98 @@ jobs:
         run: |
           set -euo pipefail
 
-          chmod +x ffmpeg-android-maker.sh scripts/*.sh scripts/*/*.sh
+          chmod +x ffmpeg-android-maker.sh scripts/*.sh scripts/*/*.sh tools/*.sh
 
-          # Compile using MX Player profile for full audio/video/subtitle decoder parity
+          # Compile using Ultimate Universal profile with all decoders for ANY Android app
           ./ffmpeg-android-maker.sh \
-            --profile=mxplayer \
+            --profile=ultimate \
             -abis=arm64-v8a,armeabi-v7a
 
-      - name: Package FFmpeg & MX Player Codec
+      - name: Package Universal FFmpeg for Android Apps
         shell: bash
         run: |
           set -euo pipefail
 
-          PACKAGE="ffmpeg-android"
-          rm -rf "$PACKAGE" dist
-          mkdir -p dist
+          PACKAGE="ffmpeg-android-ultimate"
+          SINGLE_PACKAGE="ffmpeg-android-single-so"
+          rm -rf "$PACKAGE" "$SINGLE_PACKAGE" dist
+          mkdir -p dist "$PACKAGE" "$SINGLE_PACKAGE"
 
           for ABI in arm64-v8a armeabi-v7a; do
             mkdir -p "$PACKAGE/$ABI/lib"
             mkdir -p "$PACKAGE/$ABI/include"
             mkdir -p "$PACKAGE/$ABI/bin"
+            mkdir -p "$SINGLE_PACKAGE/$ABI"
 
+            # Copy modular libraries (libavcodec.so, libavformat.so, etc.)
             if [ -d "output/lib/$ABI" ]; then
               cp -a "output/lib/$ABI/." "$PACKAGE/$ABI/lib/"
             fi
 
+            # Copy C/C++ API headers
             if [ -d "output/include/$ABI" ]; then
               cp -a "output/include/$ABI/." "$PACKAGE/$ABI/include/"
             fi
 
+            # Copy unified single libffmpeg.so
+            if [ -f "output/unified/$ABI/libffmpeg.so" ]; then
+              cp "output/unified/$ABI/libffmpeg.so" "$PACKAGE/$ABI/lib/libffmpeg.so"
+              cp "output/unified/$ABI/libffmpeg.so" "$SINGLE_PACKAGE/$ABI/libffmpeg.so"
+            fi
+
+            # Copy standalone CLI binaries
             BINARY="build/ffmpeg/$ABI/bin/ffmpeg"
             if [ -f "$BINARY" ]; then
               install -m 755 "$BINARY" "$PACKAGE/$ABI/bin/ffmpeg"
-              ls -lh "$PACKAGE/$ABI/bin/ffmpeg"
+            fi
+            PROBE_BIN="build/ffmpeg/$ABI/bin/ffprobe"
+            if [ -f "$PROBE_BIN" ]; then
+              install -m 755 "$PROBE_BIN" "$PACKAGE/$ABI/bin/ffprobe"
             fi
           done
 
-          cat > "$PACKAGE/BUILD-INFO.txt" <<EOF
-FFmpeg Android Build (MX Player Ultimate Edition)
-Repository: $GITHUB_REPOSITORY
-Commit: $GITHUB_SHA
-Run number: $GITHUB_RUN_NUMBER
-Architectures: arm64-v8a, armeabi-v7a
-Profile: MX Player (EAC3, AC3, TrueHD, MLP, DTS, DCA, libass, MediaCodec, dav1d, vpx)
+          cat > "$PACKAGE/README.txt" <<EOF
+========================================================================
+             FFmpeg Android - Ultimate Universal Edition
+========================================================================
+This package contains FFmpeg compiled with maximum power (all audio,
+video, and subtitle decoders, MediaCodec hardware acceleration, and
+external libraries) ready to use in ANY Android application.
+
+HOW TO USE IN YOUR ANDROID APPS:
+
+Option 1: Using CMake / NDK in Android Studio
+1. Copy '$PACKAGE/<abi>/include' into your app's 'src/main/cpp/include'.
+2. Copy '$PACKAGE/<abi>/lib/*.so' into your app's 'src/main/jniLibs/<abi>/'.
+3. In CMakeLists.txt, link target_link_libraries:
+     avformat avcodec avfilter swresample swscale avutil
+
+Option 2: Single-Library Drop-in (libffmpeg.so)
+1. Copy 'libffmpeg.so' directly into 'app/src/main/jniLibs/<abi>/'.
+2. In your Kotlin/Java code, simply call:
+     System.loadLibrary("ffmpeg")
+
+Option 3: ExoPlayer FFmpeg Extension
+- Drop the .so files directly into ExoPlayer's 'extension-ffmpeg' module.
+
+Option 4: Android Terminal / CLI
+- Use 'bin/ffmpeg' or 'bin/ffprobe' directly via ProcessBuilder in your app.
+
+Full decoders included:
+- Audio: AC3, EAC3, TrueHD, MLP, DTS, DCA, AAC, Opus, MP3, FLAC, ALAC, APE, WavPack, WMA, AMR, Cook.
+- Video: HEVC (Main10 HDR), H264 (Hi10P), AV1 (dav1d), VP9, VP8, MPEG4, VC1, RV40, ProRes.
+- HW Acceleration: Android MediaCodec (H264, HEVC, MPEG4, VP8, VP9, AV1).
+- Subtitles: libass (SSA/ASS styled fonts), SubRip (.srt), WebVTT, PGS, VobSub.
+========================================================================
 EOF
 
-          zip -qr dist/ffmpeg-android.zip "$PACKAGE"
-          test -s dist/ffmpeg-android.zip
-          unzip -t dist/ffmpeg-android.zip
+          # Create universal archive with modular libraries + headers + binaries
+          zip -qr dist/ffmpeg-android-ultimate.zip "$PACKAGE"
 
-          # Copy MX Player Custom Codec packages
-          if [ -f "output/mx_aio.zip" ]; then
-            cp output/mx_aio.zip dist/mx_aio.zip
-            echo "MX Player AIO package found and copied to dist/mx_aio.zip"
-          fi
+          # Create single-library archive for simple JNI use
+          zip -qr dist/ffmpeg-android-single-so.zip "$SINGLE_PACKAGE"
 
-          for f in output/mx_*.zip; do
-            [ -f "$f" ] && cp "$f" dist/
-          done
-
-          echo "Packages ready for publishing:"
+          echo "Universal packages ready for publishing:"
           ls -lh dist/
 
       - name: Publish GitHub Release
@@ -145,21 +177,20 @@ EOF
           gh release create "$TAG" \
             "${RELEASE_ASSETS[@]}" \
             --repo "$GITHUB_REPOSITORY" \
-            --title "FFmpeg Android (MX Player Ultimate Edition) - Latest Build" \
-            --notes "### FFmpeg Android (MX Player Custom Codec Edition)
+            --title "FFmpeg Android Ultimate - Latest Build" \
+            --notes "### FFmpeg Android (Ultimate Universal Edition)
 
-Compiled with full decoders for all audio, video, and subtitle formats:
+Universal high-performance FFmpeg Android binaries ready for use in **any** Android app, custom media player, ExoPlayer, NDK, video editor, or CLI!
 
 #### Included Packages:
-- **mx_aio.zip**: All-In-One custom codec package ready to be imported directly into MX Player (**Settings > Decoder > Custom codec**).
-- **ffmpeg-android.zip**: Full modular shared libraries (\`libavcodec.so\`, \`libavformat.so\`, etc.), C/C++ headers, and executables for Android development.
-- **mx_\<abi\>.zip**: Individual architecture custom codec packages.
+- **ffmpeg-android-ultimate.zip**: Complete package containing modular shared libraries (\`libavcodec.so\`, \`libavformat.so\`, \`libavutil.so\`, \`libswresample.so\`, \`libswscale.so\`, \`libavfilter.so\`), combined \`libffmpeg.so\`, C/C++ headers (\`include/\`), and standalone executables (\`bin/ffmpeg\`, \`bin/ffprobe\`).
+- **ffmpeg-android-single-so.zip**: Lightweight drop-in package with single unified \`libffmpeg.so\` for each architecture.
 
-#### Codec Highlights:
-- **Audio:** Dolby Digital (AC3), Dolby Digital Plus / Atmos (EAC3), Dolby TrueHD, MLP, DTS / DTS-HD Master Audio (DCA), AAC, Opus, MP3, FLAC, ALAC, APE (Monkey's Audio), WavPack, WMA (Pro/Lossless), AMR-NB/WB, RealAudio Cook.
-- **Video:** HEVC / H.265 (Main10 HDR), H.264 (Hi10P), AV1 (dav1d), VP9, VP8, MPEG-4 (DivX/XviD), MPEG-2, VC-1, RealVideo RV40, Apple ProRes.
+#### Universal Codec Capabilities:
+- **Audio:** Dolby Digital (AC3), Dolby Digital Plus / Atmos (EAC3), Dolby TrueHD, MLP, DTS / DTS-HD Master Audio (DCA), AAC, Opus, MP3, FLAC, ALAC, APE (Monkey's Audio), WavPack, WMA (Pro/Lossless), AMR-NB/WB, RealAudio Cook, DSD.
+- **Video:** HEVC / H.265 (Main10 10-bit HDR), H.264 (Hi10P), AV1 (via \`libdav1d\`), VP9, VP8 (via \`libvpx\`), MPEG-4 (DivX/XviD), MPEG-1/2, VC-1, RealVideo RV40, Apple ProRes.
 - **Hardware Acceleration:** Android MediaCodec HW Decoders enabled for H264, HEVC, MPEG4, VP8, VP9, AV1.
-- **Subtitles:** Full SSA/ASS styling and font rendering via \`libass\` + \`libfreetype\` + \`libfribidi\`, SubRip (.srt), WebVTT, HDMV PGS, DVD VobSub, DVB.
+- **Subtitles:** Advanced SubStation Alpha (\`libass\` + \`libfreetype\` + \`libfribidi\`), SubRip (.srt), WebVTT, HDMV PGS, DVD VobSub, DVB.
 
 **Commit:** $GITHUB_SHA
 **Workflow Run:** $GITHUB_RUN_NUMBER" \
