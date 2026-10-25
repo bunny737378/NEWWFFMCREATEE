@@ -58,7 +58,6 @@ jobs:
 
           chmod +x ffmpeg-android-maker.sh scripts/*.sh scripts/*/*.sh tools/*.sh
 
-          # Compile using Ultimate Universal profile with all decoders for ANY Android app
           ./ffmpeg-android-maker.sh \
             --profile=ultimate \
             -abis=arm64-v8a,armeabi-v7a
@@ -79,23 +78,19 @@ jobs:
             mkdir -p "$PACKAGE/$ABI/bin"
             mkdir -p "$SINGLE_PACKAGE/$ABI"
 
-            # Copy modular libraries (libavcodec.so, libavformat.so, etc.)
             if [ -d "output/lib/$ABI" ]; then
               cp -a "output/lib/$ABI/." "$PACKAGE/$ABI/lib/"
             fi
 
-            # Copy C/C++ API headers
             if [ -d "output/include/$ABI" ]; then
               cp -a "output/include/$ABI/." "$PACKAGE/$ABI/include/"
             fi
 
-            # Copy unified single libffmpeg.so
             if [ -f "output/unified/$ABI/libffmpeg.so" ]; then
               cp "output/unified/$ABI/libffmpeg.so" "$PACKAGE/$ABI/lib/libffmpeg.so"
               cp "output/unified/$ABI/libffmpeg.so" "$SINGLE_PACKAGE/$ABI/libffmpeg.so"
             fi
 
-            # Copy standalone CLI binaries
             BINARY="build/ffmpeg/$ABI/bin/ffmpeg"
             if [ -f "$BINARY" ]; then
               install -m 755 "$BINARY" "$PACKAGE/$ABI/bin/ffmpeg"
@@ -106,7 +101,7 @@ jobs:
             fi
           done
 
-          cat > "$PACKAGE/README.txt" <<EOF
+          cat << 'EOF' > "$PACKAGE/README.txt"
 ========================================================================
              FFmpeg Android - Ultimate Universal Edition
 ========================================================================
@@ -117,8 +112,8 @@ external libraries) ready to use in ANY Android application.
 HOW TO USE IN YOUR ANDROID APPS:
 
 Option 1: Using CMake / NDK in Android Studio
-1. Copy '$PACKAGE/<abi>/include' into your app's 'src/main/cpp/include'.
-2. Copy '$PACKAGE/<abi>/lib/*.so' into your app's 'src/main/jniLibs/<abi>/'.
+1. Copy '<abi>/include' into your app's 'src/main/cpp/include'.
+2. Copy '<abi>/lib/*.so' into your app's 'src/main/jniLibs/<abi>/'.
 3. In CMakeLists.txt, link target_link_libraries:
      avformat avcodec avfilter swresample swscale avutil
 
@@ -141,10 +136,8 @@ Full decoders included:
 ========================================================================
 EOF
 
-          # Create universal archive with modular libraries + headers + binaries
           zip -qr dist/ffmpeg-android-ultimate.zip "$PACKAGE"
 
-          # Create single-library archive for simple JNI use
           zip -qr dist/ffmpeg-android-single-so.zip "$SINGLE_PACKAGE"
 
           echo "Universal packages ready for publishing:"
