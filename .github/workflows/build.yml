@@ -93,39 +93,39 @@ jobs:
           done
 
           cat << 'EOF' > "$PACKAGE/README.txt"
-          ========================================================================
-                       FFmpeg Android - Ultimate Universal Edition
-          ========================================================================
-          This package contains FFmpeg compiled with maximum power (all audio,
-          video, and subtitle decoders, MediaCodec hardware acceleration, and
-          external libraries) ready to use in ANY Android application.
+========================================================================
+             FFmpeg Android - Ultimate Universal Edition
+========================================================================
+This package contains FFmpeg compiled with maximum power (all audio,
+video, and subtitle decoders, MediaCodec hardware acceleration, and
+external libraries) ready to use in ANY Android application.
 
-          HOW TO USE IN YOUR ANDROID APPS:
+HOW TO USE IN YOUR ANDROID APPS:
 
-          Option 1: Using CMake / NDK in Android Studio
-          1. Copy '<abi>/include' into your app's 'src/main/cpp/include'.
-          2. Copy '<abi>/lib/*.so' into your app's 'src/main/jniLibs/<abi>/'.
-          3. In CMakeLists.txt, link target_link_libraries:
-               avformat avcodec avfilter swresample swscale avutil
+Option 1: Using CMake / NDK in Android Studio
+1. Copy '<abi>/include' into your app's 'src/main/cpp/include'.
+2. Copy '<abi>/lib/*.so' into your app's 'src/main/jniLibs/<abi>/'.
+3. In CMakeLists.txt, link target_link_libraries:
+     avformat avcodec avfilter swresample swscale avutil
 
-          Option 2: Single-Library Drop-in (libffmpeg.so)
-          1. Copy 'libffmpeg.so' directly into 'app/src/main/jniLibs/<abi>/'.
-          2. In your Kotlin/Java code, simply call:
-               System.loadLibrary("ffmpeg")
+Option 2: Single-Library Drop-in (libffmpeg.so)
+1. Copy 'libffmpeg.so' directly into 'app/src/main/jniLibs/<abi>/'.
+2. In your Kotlin/Java code, simply call:
+     System.loadLibrary("ffmpeg")
 
-          Option 3: ExoPlayer FFmpeg Extension
-          - Drop the .so files directly into ExoPlayer's 'extension-ffmpeg' module.
+Option 3: ExoPlayer FFmpeg Extension
+- Drop the .so files directly into ExoPlayer's 'extension-ffmpeg' module.
 
-          Option 4: Android Terminal / CLI
-          - Use 'bin/ffmpeg' or 'bin/ffprobe' directly via ProcessBuilder in your app.
+Option 4: Android Terminal / CLI
+- Use 'bin/ffmpeg' or 'bin/ffprobe' directly via ProcessBuilder in your app.
 
-          Full decoders included:
-          - Audio: AC3, EAC3, TrueHD, MLP, DTS, DCA, AAC, Opus, MP3, FLAC, ALAC, APE, WavPack, WMA, AMR, Cook.
-          - Video: HEVC (Main10 HDR), H264 (Hi10P), AV1 (dav1d), VP9, VP8, MPEG4, VC1, RV40, ProRes.
-          - HW Acceleration: Android MediaCodec (H264, HEVC, MPEG4, VP8, VP9, AV1).
-          - Subtitles: libass (SSA/ASS styled fonts), SubRip (.srt), WebVTT, PGS, VobSub.
-          ========================================================================
-          EOF
+Full decoders included:
+- Audio: AC3, EAC3, TrueHD, MLP, DTS, DCA, AAC, Opus, MP3, FLAC, ALAC, APE, WavPack, WMA, AMR, Cook.
+- Video: HEVC (Main10 HDR), H264 (Hi10P), AV1 (dav1d), VP9, VP8, MPEG4, VC1, RV40, ProRes.
+- HW Acceleration: Android MediaCodec (H264, HEVC, MPEG4, VP8, VP9, AV1).
+- Subtitles: libass (SSA/ASS styled fonts), SubRip (.srt), WebVTT, PGS, VobSub.
+========================================================================
+EOF
 
           zip -qr dist/ffmpeg-android-ultimate.zip "$PACKAGE"
           zip -qr dist/ffmpeg-android-single-so.zip "$SINGLE_PACKAGE"
