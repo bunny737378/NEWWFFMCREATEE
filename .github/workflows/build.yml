@@ -150,6 +150,7 @@ EOF
           echo "Universal packages ready for publishing:"
           ls -lh dist/
 
+
       - name: Publish GitHub Release
         shell: bash
         env:
@@ -174,27 +175,39 @@ EOF
 
           RELEASE_ASSETS=(dist/*.zip)
 
+          cat > release-notes.md <<EOF
+          ### FFmpeg Android Ultimate - Latest Build
+
+          Universal FFmpeg Android binaries for Android apps, custom media players, ExoPlayer, NDK projects, video editors, and CLI tools.
+
+          #### Included Packages
+
+          - **ffmpeg-android-ultimate.zip**: Modular shared libraries, combined libffmpeg.so, C/C++ headers, and standalone ffmpeg/ffprobe binaries.
+          - **ffmpeg-android-single-so.zip**: Single-library package containing libffmpeg.so for each supported architecture.
+
+          #### Supported Architectures
+
+          - arm64-v8a
+          - armeabi-v7a
+
+          #### Codec Capabilities
+
+          - **Audio:** AC3, EAC3, TrueHD, MLP, DTS, AAC, Opus, MP3, FLAC, ALAC, APE, WavPack, WMA, AMR, and more.
+          - **Video:** HEVC/H.265, H.264, AV1, VP9, VP8, MPEG-4, MPEG-1/2, VC-1, RealVideo, and ProRes.
+          - **Hardware acceleration:** Android MediaCodec, where supported by the build and device.
+          - **Subtitles:** ASS/SSA, SubRip, WebVTT, PGS, VobSub, and DVB, where enabled.
+
+          **Commit:** $GITHUB_SHA
+          **Workflow Run:** $GITHUB_RUN_NUMBER
+          EOF
+
           gh release create "$TAG" \
             "${RELEASE_ASSETS[@]}" \
             --repo "$GITHUB_REPOSITORY" \
             --title "FFmpeg Android Ultimate - Latest Build" \
-            --notes "### FFmpeg Android (Ultimate Universal Edition)
-
-Universal high-performance FFmpeg Android binaries ready for use in **any** Android app, custom media player, ExoPlayer, NDK, video editor, or CLI!
-
-#### Included Packages:
-- **ffmpeg-android-ultimate.zip**: Complete package containing modular shared libraries (\`libavcodec.so\`, \`libavformat.so\`, \`libavutil.so\`, \`libswresample.so\`, \`libswscale.so\`, \`libavfilter.so\`), combined \`libffmpeg.so\`, C/C++ headers (\`include/\`), and standalone executables (\`bin/ffmpeg\`, \`bin/ffprobe\`).
-- **ffmpeg-android-single-so.zip**: Lightweight drop-in package with single unified \`libffmpeg.so\` for each architecture.
-
-#### Universal Codec Capabilities:
-- **Audio:** Dolby Digital (AC3), Dolby Digital Plus / Atmos (EAC3), Dolby TrueHD, MLP, DTS / DTS-HD Master Audio (DCA), AAC, Opus, MP3, FLAC, ALAC, APE (Monkey's Audio), WavPack, WMA (Pro/Lossless), AMR-NB/WB, RealAudio Cook, DSD.
-- **Video:** HEVC / H.265 (Main10 10-bit HDR), H.264 (Hi10P), AV1 (via \`libdav1d\`), VP9, VP8 (via \`libvpx\`), MPEG-4 (DivX/XviD), MPEG-1/2, VC-1, RealVideo RV40, Apple ProRes.
-- **Hardware Acceleration:** Android MediaCodec HW Decoders enabled for H264, HEVC, MPEG4, VP8, VP9, AV1.
-- **Subtitles:** Advanced SubStation Alpha (\`libass\` + \`libfreetype\` + \`libfribidi\`), SubRip (.srt), WebVTT, HDMV PGS, DVD VobSub, DVB.
-
-**Commit:** $GITHUB_SHA
-**Workflow Run:** $GITHUB_RUN_NUMBER" \
+            --notes-file release-notes.md \
             --latest
 
           echo "Release published successfully."
+
           gh release view "$TAG" --repo "$GITHUB_REPOSITORY"
