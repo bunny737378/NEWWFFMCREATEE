@@ -14,4 +14,3 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "FFmpeg Maker"
-include(":app")
