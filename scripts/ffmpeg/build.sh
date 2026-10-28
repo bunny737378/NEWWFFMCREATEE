@@ -49,7 +49,9 @@ fi
 ADDITIONAL_COMPONENTS=
 for LIBRARY_NAME in ${FFMPEG_EXTERNAL_LIBRARIES[@]}
 do
-  ADDITIONAL_COMPONENTS+=" --enable-$LIBRARY_NAME"
+  if [ "$LIBRARY_NAME" != "harfbuzz" ]; then
+    ADDITIONAL_COMPONENTS+=" --enable-$LIBRARY_NAME"
+  fi
 done
 
 # Referencing dependencies without pkgconfig

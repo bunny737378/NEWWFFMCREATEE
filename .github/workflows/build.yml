@@ -30,7 +30,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             curl wget git python3 zip unzip make cmake \
-            ninja-build meson nasm pkg-config yasm clang
+            ninja-build meson nasm pkg-config yasm clang xz-utils
 
       - name: Setup Android NDK
         shell: bash

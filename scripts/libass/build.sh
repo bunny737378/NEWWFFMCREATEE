@@ -26,7 +26,6 @@ esac
     --enable-static \
     --disable-fontconfig \
     --disable-require-system-font-provider \
-    --disable-harfbuzz \
     --with-pic \
     ${EXTRA_LIBASS_FLAGS} \
     CC=${FAM_CC} \

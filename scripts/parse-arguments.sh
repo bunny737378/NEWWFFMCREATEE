@@ -30,6 +30,7 @@ SUPPORTED_LIBRARIES_FREE=(
   "libvpx"
   "libwebp"
   "libfreetype"
+  "harfbuzz"
   "libfribidi"
   "libass"
   "mbedtls"
@@ -108,8 +109,13 @@ for argument in "$@"; do
   # Subtitle rendering engine (SSA/ASS)
   --enable-libass | -ass)
     [[ ! " ${EXTERNAL_LIBRARIES[@]} " =~ " libfreetype " ]] && EXTERNAL_LIBRARIES+=("libfreetype")
+    [[ ! " ${EXTERNAL_LIBRARIES[@]} " =~ " harfbuzz " ]] && EXTERNAL_LIBRARIES+=("harfbuzz")
     [[ ! " ${EXTERNAL_LIBRARIES[@]} " =~ " libfribidi " ]] && EXTERNAL_LIBRARIES+=("libfribidi")
     EXTERNAL_LIBRARIES+=("libass")
+    ;;
+  --enable-harfbuzz | -harfbuzz)
+    [[ ! " ${EXTERNAL_LIBRARIES[@]} " =~ " libfreetype " ]] && EXTERNAL_LIBRARIES+=("libfreetype")
+    EXTERNAL_LIBRARIES+=("harfbuzz")
     ;;
   # Android MediaCodec Hardware Acceleration
   --enable-mediacodec | -mediacodec)
