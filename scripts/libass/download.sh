@@ -2,8 +2,8 @@
 
 source ${SCRIPTS_DIR}/common-functions.sh
 
-LIBASS_VERSION=0.17.3
+LIBASS_VERSION=0.14.0
 
 downloadTarArchive \
   "libass" \
-  "https://github.com/libass/libass/releases/download/${LIBASS_VERSION}/libass-${LIBASS_VERSION}.tar.xz"
+  "https://github.com/libass/libass/releases/download/${LIBASS_VERSION}/libass-${LIBASS_VERSION}.tar.gz"

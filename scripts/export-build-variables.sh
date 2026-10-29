@@ -89,3 +89,4 @@ export INSTALL_DIR=${BUILD_DIR_EXTERNAL}/${ANDROID_ABI}
 # Forcing FFmpeg and its dependencies to look for dependencies
 # in a specific directory when pkg-config is used
 export PKG_CONFIG_LIBDIR=${INSTALL_DIR}/lib/pkgconfig
+export PKG_CONFIG_PATH=${PKG_CONFIG_LIBDIR}
