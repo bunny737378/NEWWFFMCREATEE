@@ -114,6 +114,8 @@ if [ "$BUILD_SINGLE_SO" = true ] || [ "$ULTIMATE_PROFILE" = true ] || [ "$BUILD_
 
   ${FAM_CC} -shared -Wl,-soname,libffmpeg.so \
     -Wl,-z,max-page-size=16384 \
+    -Wl,-z,muldefs \
+    -Wl,--allow-multiple-definition \
     -Wl,--whole-archive \
     "${FFMPEG_ARCHIVES[@]}" \
     -Wl,--no-whole-archive \
