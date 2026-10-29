@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# libaom doesn't support building while being in its root directory
 CMAKE_BUILD_DIR=libx265_build_${ANDROID_ABI}
 rm -rf ${CMAKE_BUILD_DIR}
 mkdir ${CMAKE_BUILD_DIR}
@@ -9,7 +8,6 @@ cd ${CMAKE_BUILD_DIR}
 EXTRA_CMAKE_ARG=""
 case $ANDROID_ABI in
   arm64-v8a|x86)
-    # Disabling assembler optimizations for certain ABIs. Not a good solution, but it at least works
     EXTRA_CMAKE_ARG="-DENABLE_ASSEMBLY=OFF"
     ;;
 esac

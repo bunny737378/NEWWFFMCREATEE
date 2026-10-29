@@ -6,7 +6,6 @@ X264_ADDITIONAL_FLAGS=
 
 case $ANDROID_ABI in
   x86)
-    # Disabling assembler optimizations due to text relocations
     X264_ADDITIONAL_FLAGS=--disable-asm
     ;;
   x86_64)

@@ -1,5 +1,3 @@
-// Root build configuration for FFmpeg Maker toolchain
-
 tasks.register("assembleDebug") {
     doLast {
         println("FFmpeg Maker build environment ready.")

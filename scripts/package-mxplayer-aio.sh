@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# Script to package compiled FFmpeg libraries into an MX Player custom codec All-In-One (AIO) ZIP
-# Compatible with MX Player's "Custom Codec" loader.
-
 BASE_DIR=${BASE_DIR:-"$( cd "$( dirname "$0" )/.." && pwd )"}
 OUTPUT_DIR=${OUTPUT_DIR:-"${BASE_DIR}/output"}
 BUILD_DIR_FFMPEG=${BUILD_DIR_FFMPEG:-"${BASE_DIR}/build/ffmpeg"}
@@ -20,7 +17,6 @@ FOUND_ANY_SO=false
 for ABI in "arm64-v8a" "armeabi-v7a" "x86" "x86_64"
 do
   SO_FILE=""
-  # Check priority locations for libffmpeg.mx.so or libffmpeg.so
   if [ -f "${OUTPUT_DIR}/mxplayer/${ABI}/libffmpeg.mx.so" ]; then
     SO_FILE="${OUTPUT_DIR}/mxplayer/${ABI}/libffmpeg.mx.so"
   elif [ -f "${OUTPUT_DIR}/lib/${ABI}/libffmpeg.mx.so" ]; then
@@ -42,14 +38,12 @@ do
     cp "${SO_FILE}" "${AIO_DIR}/${ABI}/libffmpeg.mx.so"
     cp "${SO_FILE}" "${AIO_DIR}/${ABI}/libffmpeg.so"
 
-    # If armeabi-v7a, also create neon directory (standard for MX Player ARMv7 NEON)
     if [ "${ABI}" = "armeabi-v7a" ]; then
       mkdir -p "${AIO_DIR}/neon"
       cp "${SO_FILE}" "${AIO_DIR}/neon/libffmpeg.mx.so"
       cp "${SO_FILE}" "${AIO_DIR}/neon/libffmpeg.so"
     fi
 
-    # Also build individual standalone ZIP for this ABI
     STANDALONE_ZIP_DIR="${OUTPUT_DIR}/standalone_${ABI}"
     rm -rf "${STANDALONE_ZIP_DIR}"
     mkdir -p "${STANDALONE_ZIP_DIR}"
@@ -66,7 +60,6 @@ if [ "$FOUND_ANY_SO" = false ]; then
   exit 0
 fi
 
-# Create README with usage instructions for MX Player
 cat > "${AIO_DIR}/README.txt" << 'EOF'
 ========================================================================
              MX Player Custom Codec - All-In-One (AIO)
@@ -128,7 +121,6 @@ formats.
 ========================================================================
 EOF
 
-# Create JSON metadata manifest
 cat > "${AIO_DIR}/codec_manifest.json" << 'EOF'
 {
   "name": "MX Player Custom Codec Ultimate",
@@ -156,7 +148,6 @@ cat > "${AIO_DIR}/codec_manifest.json" << 'EOF'
 }
 EOF
 
-# Create the All-In-One ZIP archive
 AIO_ZIP="${OUTPUT_DIR}/mx_aio.zip"
 rm -f "${AIO_ZIP}"
 (cd "${AIO_DIR}" && zip -rq "${AIO_ZIP}" .)

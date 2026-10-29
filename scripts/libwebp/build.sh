@@ -11,7 +11,6 @@
     AR=${FAM_AR} \
     RANLIB=${FAM_RANLIB} || exit 1
 
-# libsharpyuv.a is available alongside the libwebp.a
 export FFMPEG_EXTRA_LD_FLAGS="${FFMPEG_EXTRA_LD_FLAGS} -lm -lsharpyuv"
 
 ${MAKE_EXECUTABLE} clean

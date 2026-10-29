@@ -1,10 +1,8 @@
 #!/usr/bin/env bash
 
-# Android ABI specific flags for libass
 EXTRA_LIBASS_FLAGS=""
 case $ANDROID_ABI in
   x86)
-    # Disable assembly optimizations on x86 to avoid text relocations
     EXTRA_LIBASS_FLAGS="--disable-asm"
     ;;
   x86_64)

@@ -1,10 +1,5 @@
 #!/usr/bin/env bash
 
-# This script parses arguments that were passed to ffmpeg-android-maker.sh
-# and exports a bunch of variables that are used elsewhere.
-
-# Local variables with default values (except ABIS_TO_BUILD).
-# Can be overridden with specific arguments.
 ABIS_TO_BUILD=()
 API_LEVEL=21
 SOURCE_TYPE=TAR
@@ -18,8 +13,6 @@ PACKAGE_AIO=false
 ULTIMATE_PROFILE=false
 MX_PROFILE=false
 
-# All FREE libraries that are supported
-# Note: libfreetype and libfribidi precede libass because libass depends on them
 SUPPORTED_LIBRARIES_FREE=(
   "libaom"
   "libdav1d"
@@ -37,7 +30,6 @@ SUPPORTED_LIBRARIES_FREE=(
   "libxml2"
 )
 
-# All GPL libraries that are supported
 SUPPORTED_LIBRARIES_GPL=(
   "libx264"
   "libx265"
@@ -45,7 +37,6 @@ SUPPORTED_LIBRARIES_GPL=(
 
 for argument in "$@"; do
   case $argument in
-  # Universal Ultimate Profile: Maximum power for ANY Android app
   --profile=ultimate | --profile=full | --ultimate | -u | --all-codecs)
     ULTIMATE_PROFILE=true
     BUILD_SINGLE_SO=true
@@ -54,7 +45,6 @@ for argument in "$@"; do
     EXTERNAL_LIBRARIES+=("${SUPPORTED_LIBRARIES_FREE[@]}")
     EXTERNAL_LIBRARIES+=("${SUPPORTED_LIBRARIES_GPL[@]}")
     ;;
-  # MX Player Profile: Same ultimate decoders + packages mx_aio.zip
   --profile=mxplayer | --mxplayer | -mx)
     ULTIMATE_PROFILE=true
     MX_PROFILE=true
@@ -66,7 +56,6 @@ for argument in "$@"; do
     EXTERNAL_LIBRARIES+=("${SUPPORTED_LIBRARIES_FREE[@]}")
     EXTERNAL_LIBRARIES+=("${SUPPORTED_LIBRARIES_GPL[@]}")
     ;;
-  # Build for only specified ABIs (separated by comma)
   --target-abis=* | -abis=*)
     IFS=',' read -ra ABIS <<<"${argument#*=}"
     for abi in "${ABIS[@]}"; do
@@ -86,49 +75,39 @@ for argument in "$@"; do
       esac
     done
     ;;
-  # Use this value as Android platform version during compilation.
   --android-api-level=* | -android=*)
     API_LEVEL="${argument#*=}"
     ;;
-  # Checkout the particular tag in the FFmpeg's git repository
   --source-git-tag=*)
     SOURCE_TYPE=GIT_TAG
     SOURCE_VALUE="${argument#*=}"
     ;;
-  # Checkout the particular branch in the FFmpeg's git repository
   --source-git-branch=*)
     SOURCE_TYPE=GIT_BRANCH
     SOURCE_VALUE="${argument#*=}"
     ;;
-  # Download the particular tar archive by its version
   --source-tar=*)
     SOURCE_TYPE=TAR
     SOURCE_VALUE="${argument#*=}"
     ;;
-  # Subtitle rendering engine (SSA/ASS)
   --enable-libass | -ass)
     [[ ! " ${EXTERNAL_LIBRARIES[@]} " =~ " libfreetype " ]] && EXTERNAL_LIBRARIES+=("libfreetype")
     [[ ! " ${EXTERNAL_LIBRARIES[@]} " =~ " libfribidi " ]] && EXTERNAL_LIBRARIES+=("libfribidi")
     EXTERNAL_LIBRARIES+=("libass")
     ;;
-  # Android MediaCodec Hardware Acceleration
   --enable-mediacodec | -mediacodec)
     ENABLE_MEDIACODEC=true
     ;;
-  # Build unified single libffmpeg.so for simple JNI integration in any app
   --build-single-so | -single-so)
     BUILD_SINGLE_SO=true
     ;;
-  # Build libffmpeg.mx.so
   --build-mx-so | -mx-so)
     BUILD_SINGLE_SO=true
     BUILD_MX_SO=true
     ;;
-  # Package output into All-In-One (AIO) ZIP
   --package-aio | -aio)
     PACKAGE_AIO=true
     ;;
-  # Arguments below enable certain external libraries to build into FFmpeg
   --enable-libaom | -aom)
     EXTERNAL_LIBRARIES+=("libaom")
     ;;
@@ -190,33 +169,25 @@ for argument in "$@"; do
   shift
 done
 
-# Deduplicate EXTERNAL_LIBRARIES while maintaining order
 DEDUPED_LIBRARIES=()
 for lib in "${EXTERNAL_LIBRARIES[@]}"; do
   [[ ! " ${DEDUPED_LIBRARIES[@]} " =~ " ${lib} " ]] && DEDUPED_LIBRARIES+=("${lib}")
 done
 EXTERNAL_LIBRARIES=("${DEDUPED_LIBRARIES[@]}")
 
-# If ABIS_TO_BUILD list is empty, then fill it with all supported ABIs
-# The x86 is the first, because it is more likely to have Text Relocations.
 if [ ${#ABIS_TO_BUILD[@]} -eq 0 ]; then
   ABIS_TO_BUILD=("x86" "x86_64" "armeabi-v7a" "arm64-v8a")
 fi
 
-# The FFmpeg will be built for ABIs in this list
 export FFMPEG_ABIS_TO_BUILD=${ABIS_TO_BUILD[@]}
 
-# Saving the information FFmpeg's source code downloading
 export FFMPEG_SOURCE_TYPE=$SOURCE_TYPE
 export FFMPEG_SOURCE_VALUE=$SOURCE_VALUE
 
-# A list of external libraries to build into FFmpeg
 export FFMPEG_EXTERNAL_LIBRARIES=${EXTERNAL_LIBRARIES[@]}
 
-# Desired Android API level to use during compilation
 export DESIRED_ANDROID_API_LEVEL=${API_LEVEL}
 
-# Feature flags
 export FFMPEG_GPL_ENABLED=$FFMPEG_GPL_ENABLED
 export ENABLE_MEDIACODEC=$ENABLE_MEDIACODEC
 export BUILD_SINGLE_SO=$BUILD_SINGLE_SO

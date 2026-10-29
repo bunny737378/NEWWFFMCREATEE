@@ -1,17 +1,11 @@
 #!/usr/bin/env bash
 
-# Function that downloads an archive with the source code by the given url,
-# extracts its files and exports a variable SOURCES_DIR_${LIBRARY_NAME}
 function downloadTarArchive() {
-  # The full name of the library
   LIBRARY_NAME=$1
-  # The url of the source code archive
   DOWNLOAD_URL=$2
-  # Optional. If 'true' then the function creates an extra directory for archive extraction.
   NEED_EXTRA_DIRECTORY=$3
 
   ARCHIVE_NAME=${DOWNLOAD_URL##*/}
-  # File name without extension
   LIBRARY_SOURCES="${ARCHIVE_NAME%.tar.*}"
 
   echo "Ensuring sources of ${LIBRARY_NAME} in ${LIBRARY_SOURCES}"
@@ -22,11 +16,13 @@ function downloadTarArchive() {
     EXTRACTION_DIR="."
     if [ "$NEED_EXTRA_DIRECTORY" = true ] ; then
       EXTRACTION_DIR=${LIBRARY_SOURCES}
-      mkdir ${EXTRACTION_DIR}
+      mkdir -p ${EXTRACTION_DIR}
     fi
 
-    tar xf ${ARCHIVE_NAME} -C ${EXTRACTION_DIR}
-    rm ${ARCHIVE_NAME}
+    if ! tar xf ${ARCHIVE_NAME} -C ${EXTRACTION_DIR} 2>/dev/null; then
+      python3 -c "import tarfile, sys; tarfile.open(sys.argv[1]).extractall(sys.argv[2])" "${ARCHIVE_NAME}" "${EXTRACTION_DIR}" || exit 1
+    fi
+    rm -f ${ARCHIVE_NAME}
   fi
 
   export SOURCES_DIR_${LIBRARY_NAME}=$(pwd)/${LIBRARY_SOURCES}

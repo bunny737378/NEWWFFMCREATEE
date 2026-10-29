@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 CMAKE_BUILD_DIR=mbedtls_build_${ANDROID_ABI}
-# mbedtls authors park their source in a directory named  mbedtls-${MBEDTLS_VERSION}
-# instead of root directory
 cd mbedtls-${MBEDTLS_VERSION}
 rm -rf ${CMAKE_BUILD_DIR}
 mkdir ${CMAKE_BUILD_DIR}

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-# Resolve ANDROID_SDK_HOME from ANDROID_SDK_ROOT or ANDROID_HOME if unset
 if [[ -z "${ANDROID_SDK_HOME}" ]]; then
   if [[ -n "${ANDROID_SDK_ROOT}" ]]; then
     export ANDROID_SDK_HOME="${ANDROID_SDK_ROOT}"
@@ -9,7 +8,6 @@ if [[ -z "${ANDROID_SDK_HOME}" ]]; then
   fi
 fi
 
-# Resolve ANDROID_NDK_HOME if unset
 if [[ -z "${ANDROID_NDK_HOME}" ]]; then
   if [[ -n "${ANDROID_SDK_HOME}" && -d "${ANDROID_SDK_HOME}/ndk" ]]; then
     LATEST_NDK=$(ls -1 "${ANDROID_SDK_HOME}/ndk" 2>/dev/null | sort -V | tail -n 1)

@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 
-# TODO Consider adding a dependency - libsndfile
-
 ./configure \
     --prefix=${INSTALL_DIR} \
     --host=${TARGET} \
