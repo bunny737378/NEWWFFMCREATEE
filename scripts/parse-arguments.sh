@@ -8,10 +8,7 @@ EXTERNAL_LIBRARIES=()
 FFMPEG_GPL_ENABLED=false
 ENABLE_MEDIACODEC=false
 BUILD_SINGLE_SO=false
-BUILD_MX_SO=false
-PACKAGE_AIO=false
 ULTIMATE_PROFILE=false
-MX_PROFILE=false
 
 SUPPORTED_LIBRARIES_FREE=(
   "libaom"
@@ -37,20 +34,8 @@ SUPPORTED_LIBRARIES_GPL=(
 
 for argument in "$@"; do
   case $argument in
-  --profile=ultimate | --profile=full | --ultimate | -u | --all-codecs)
+  --profile=ultimate | --profile=full | --ultimate | -u | --all-codecs | --profile=mxplayer | --mxplayer | -mx)
     ULTIMATE_PROFILE=true
-    BUILD_SINGLE_SO=true
-    ENABLE_MEDIACODEC=true
-    FFMPEG_GPL_ENABLED=true
-    EXTERNAL_LIBRARIES+=("${SUPPORTED_LIBRARIES_FREE[@]}")
-    EXTERNAL_LIBRARIES+=("${SUPPORTED_LIBRARIES_GPL[@]}")
-    ;;
-  --profile=mxplayer | --mxplayer | -mx)
-    ULTIMATE_PROFILE=true
-    MX_PROFILE=true
-    BUILD_SINGLE_SO=true
-    BUILD_MX_SO=true
-    PACKAGE_AIO=true
     ENABLE_MEDIACODEC=true
     FFMPEG_GPL_ENABLED=true
     EXTERNAL_LIBRARIES+=("${SUPPORTED_LIBRARIES_FREE[@]}")

@@ -26,16 +26,6 @@ function prepareOutput() {
     mkdir -p ${OUTPUT_BIN}
     cp -r ${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/bin/* ${OUTPUT_BIN} 2>/dev/null || true
   fi
-
-  if [ -f "${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.so" ]; then
-    OUTPUT_UNIFIED=${OUTPUT_DIR}/unified/${ANDROID_ABI}
-    mkdir -p ${OUTPUT_UNIFIED}
-    cp ${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.so ${OUTPUT_UNIFIED}/
-    if [ -f "${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.mx.so" ]; then
-      mkdir -p ${OUTPUT_DIR}/mxplayer/${ANDROID_ABI}
-      cp ${BUILD_DIR_FFMPEG}/${ANDROID_ABI}/lib/libffmpeg.mx.so ${OUTPUT_DIR}/mxplayer/${ANDROID_ABI}/
-    fi
-  fi
 }
 
 function checkTextRelocations() {
@@ -100,9 +90,6 @@ do
   prepareOutput
 done
 
-if [ "$PACKAGE_AIO" = true ]; then
-  source ${SCRIPTS_DIR}/package-mxplayer-aio.sh
-fi
 
 echo "=========================================================="
 echo "FFmpeg build completed successfully!"

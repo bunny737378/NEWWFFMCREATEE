@@ -58,47 +58,41 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          PACKAGE="ffmpeg-android-ultimate"
-          SINGLE_PACKAGE="ffmpeg-android-single-so"
-          rm -rf "$PACKAGE" "$SINGLE_PACKAGE" dist
-          mkdir -p dist "$PACKAGE" "$SINGLE_PACKAGE"
+          PACKAGE="ffmpeg_package"
+          rm -rf "$PACKAGE" dist
+          mkdir -p dist "$PACKAGE"
 
           for ABI in arm64-v8a armeabi-v7a; do
-            mkdir -p "$PACKAGE/$ABI/lib"
-            mkdir -p "$PACKAGE/$ABI/include"
-            mkdir -p "$PACKAGE/$ABI/bin"
-            mkdir -p "$SINGLE_PACKAGE/$ABI"
+            mkdir -p "$PACKAGE/lib/$ABI"
+            mkdir -p "$PACKAGE/include/$ABI"
+            mkdir -p "$PACKAGE/bin/$ABI"
 
             if [ -d "output/lib/$ABI" ]; then
-              cp -a "output/lib/$ABI/." "$PACKAGE/$ABI/lib/"
+              cp -a "output/lib/$ABI/." "$PACKAGE/lib/$ABI/"
             fi
 
             if [ -d "output/include/$ABI" ]; then
-              cp -a "output/include/$ABI/." "$PACKAGE/$ABI/include/"
+              cp -a "output/include/$ABI/." "$PACKAGE/include/$ABI/"
             fi
 
-            if [ -f "output/unified/$ABI/libffmpeg.so" ]; then
-              cp "output/unified/$ABI/libffmpeg.so" "$PACKAGE/$ABI/lib/libffmpeg.so"
-              cp "output/unified/$ABI/libffmpeg.so" "$SINGLE_PACKAGE/$ABI/libffmpeg.so"
-            fi
-
-            BINARY="build/ffmpeg/$ABI/bin/ffmpeg"
+            BINARY="output/bin/$ABI/ffmpeg"
             if [ -f "$BINARY" ]; then
-              install -m 755 "$BINARY" "$PACKAGE/$ABI/bin/ffmpeg"
+              install -m 755 "$BINARY" "$PACKAGE/bin/$ABI/ffmpeg"
             fi
-            PROBE_BIN="build/ffmpeg/$ABI/bin/ffprobe"
+            PROBE_BIN="output/bin/$ABI/ffprobe"
             if [ -f "$PROBE_BIN" ]; then
-              install -m 755 "$PROBE_BIN" "$PACKAGE/$ABI/bin/ffprobe"
+              install -m 755 "$PROBE_BIN" "$PACKAGE/bin/$ABI/ffprobe"
             fi
           done
 
           cp README.md "$PACKAGE/README.md"
 
-          zip -qr dist/ffmpeg-android-ultimate.zip "$PACKAGE"
-          zip -qr dist/ffmpeg-android-single-so.zip "$SINGLE_PACKAGE"
+          cd "$PACKAGE"
+          zip -qr ../dist/ffmpeg.zip .
+          cd ..
 
-          echo "Universal packages ready for publishing:"
-          ls -lh dist/
+          echo "Universal FFmpeg package ready for publishing:"
+          ls -lh dist/ffmpeg.zip
 
       - name: Publish GitHub Release
         shell: bash
@@ -112,25 +106,25 @@ jobs:
             gh release delete "$TAG" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag
           fi
 
-          RELEASE_ASSETS=(dist/*.zip)
-
           gh release create "$TAG" \
-            "${RELEASE_ASSETS[@]}" \
+            dist/ffmpeg.zip \
             --repo "$GITHUB_REPOSITORY" \
             --title "FFmpeg Android Ultimate - Latest Build" \
             --notes "### FFmpeg Android (Ultimate Universal Edition)
 
-          Universal high-performance FFmpeg Android binaries ready for use in **any** Android app, custom media player, ExoPlayer, NDK, video editor, or CLI!
+          Universal high-performance modular FFmpeg Android libraries ready for use in **any** Android app, custom media player, ExoPlayer, NDK, video editor, or CLI!
 
-          #### Included Packages:
-          - **ffmpeg-android-ultimate.zip**: Complete package containing modular shared libraries (\`libavcodec.so\`, \`libavformat.so\`, \`libavutil.so\`, \`libswresample.so\`, \`libswscale.so\`, \`libavfilter.so\`), combined \`libffmpeg.so\`, C/C++ headers (\`include/\`), and standalone executables (\`bin/ffmpeg\`, \`bin/ffprobe\`).
-          - **ffmpeg-android-single-so.zip**: Lightweight drop-in package with single unified \`libffmpeg.so\` for each architecture.
+          #### Included in \`ffmpeg.zip\`:
+          - **\`lib/\`**: Modular shared libraries (\`libavcodec.so\`, \`libavformat.so\`, \`libavutil.so\`, \`libswresample.so\`, \`libswscale.so\`, \`libavfilter.so\`, \`libavdevice.so\`) for \`arm64-v8a\` and \`armeabi-v7a\`.
+          - **\`include/\`**: Complete C/C++ header files for Android Studio NDK / CMake integration.
+          - **\`bin/\`**: Native Android standalone executables (\`ffmpeg\` and \`ffprobe\`).
 
-          #### Universal Codec Capabilities:
-          - **Audio:** Dolby Digital (AC3), Dolby Digital Plus / Atmos (EAC3), Dolby TrueHD, MLP, DTS / DTS-HD Master Audio (DCA), AAC, Opus, MP3, FLAC, ALAC, APE (Monkey's Audio), WavPack, WMA (Pro/Lossless), AMR-NB/WB, RealAudio Cook, DSD.
-          - **Video:** HEVC / H.265 (Main10 10-bit HDR), H.264 (Hi10P), AV1 (via \`libdav1d\`), VP9, VP8 (via \`libvpx\`), MPEG-4 (DivX/XviD), MPEG-1/2, VC-1, RealVideo RV40, Apple ProRes.
+          #### Comprehensive Codec Capabilities:
+          - **Audio:** Dolby Digital (AC3), Dolby Digital Plus / Atmos (EAC3), Dolby TrueHD, MLP, DTS / DTS-HD Master Audio (DCA), AAC, Opus, MP3, FLAC, ALAC, APE (Monkey's Audio), WavPack, WMA (v1, v2, Pro, Lossless, Voice), AMR-NB/WB, RealAudio Cook, ATRAC1/3/3+/9, DSD, TAK, Shorten, Musepack, ADPCM.
+          - **Video:** HEVC / H.265 (Main10 10-bit HDR), H.264 (Hi10P), AV1 (via \`libdav1d\`), VP9 (HDR Profile 2), VP8, MPEG-4 (DivX/XviD), MPEG-1/2, VC-1, RealVideo (RV10-RV40), Apple ProRes, Theora, Bink, Cinepak, Indeo.
           - **Hardware Acceleration:** Android MediaCodec HW Decoders enabled for H264, HEVC, MPEG4, VP8, VP9, AV1.
-          - **Subtitles:** Advanced SubStation Alpha (\`libass\` + \`libfreetype\` + \`libfribidi\`), SubRip (.srt), WebVTT, HDMV PGS, DVD VobSub, DVB.
+          - **Subtitles:** Advanced SubStation Alpha (\`libass\` + \`libfreetype\` + \`libfribidi\`), SubRip (.srt), WebVTT, HDMV PGS, DVD VobSub, DVB, Teletext.
+          - **Filters & Deinterlacing:** YADIF, W3FDIF, BWDIF, transpose, rotate, vflip, hflip, scale, loudnorm, volume, aresample.
 
           **Commit:** $GITHUB_SHA
           **Workflow Run:** $GITHUB_RUN_NUMBER" \
